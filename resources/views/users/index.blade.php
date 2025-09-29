@@ -125,7 +125,7 @@
                                                 <i class="fas fa-{{ $user->is_active ? 'ban' : 'check' }}"></i>
                                             </button>
                                         </form>
-                                        @if(!$user->isAdmin() || User::where('role', 'admin')->count() > 1)
+                                        @if(!$user->isAdmin() || \App\Models\User::where('role', 'admin')->count() > 1)
                                         <form method="POST" action="{{ route('users.destroy', $user) }}" class="d-inline">
                                             @csrf
                                             @method('DELETE')
