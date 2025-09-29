@@ -26,10 +26,15 @@ class SystemSetting extends Model
 
     public static function setValue($key, $value, $type = 'string')
     {
+        // Ensure value is never null to avoid database constraint issues
+        if ($value === null) {
+            $value = '';
+        }
+        
         return self::updateOrCreate(
             ['setting_key' => $key],
             [
-                'setting_value' => $value,
+                'setting_value' => (string) $value,
                 'setting_type' => $type
             ]
         );

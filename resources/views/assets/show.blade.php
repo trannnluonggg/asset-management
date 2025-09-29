@@ -258,9 +258,9 @@
                     </button>
                     @endif
                     
-                    <button class="btn btn-info" onclick="reportIncident()">
+                    <a href="{{ route('incidents.create', ['asset_id' => $asset->id]) }}" class="btn btn-info">
                         <i class="fas fa-exclamation-triangle me-2"></i>Báo cáo sự cố
-                    </button>
+                    </a>
                     
                     <a href="{{ route('assets.edit', $asset) }}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Chỉnh sửa
@@ -288,10 +288,6 @@ function assignAsset() {
 
 function returnAsset() {
     alert('Chức năng thu hồi tài sản sẽ được phát triển trong phiên bản tiếp theo.');
-}
-
-function reportIncident() {
-    alert('Chức năng báo cáo sự cố sẽ được phát triển trong phiên bản tiếp theo.');
 }
 </script>
 @endsection

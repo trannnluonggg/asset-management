@@ -113,6 +113,8 @@
                                             
                                             @elseif($setting['type'] === 'checkbox')
                                                 <div class="form-check">
+                                                    <!-- Hidden input to ensure unchecked checkboxes send '0' -->
+                                                    <input type="hidden" name="settings[{{ $settingKey }}]" value="0">
                                                     <input class="form-check-input @error('settings.'.$settingKey) is-invalid @enderror" 
                                                            type="checkbox" 
                                                            id="{{ $settingKey }}" 

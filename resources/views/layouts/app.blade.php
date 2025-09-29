@@ -239,7 +239,7 @@
             
             // Mark all as read
             markAllReadBtn.addEventListener('click', function() {
-                fetch('{{ route("profile.notifications.read-all") }}', {
+                fetch('{{ route("notifications.read-all") }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -257,10 +257,17 @@
             });
             
             function loadUnreadCount() {
-                // For now, we'll use a simple approach since we don't have the API route
-                // In a real implementation, you would fetch from an API endpoint
-                const count = {{ auth()->user()->unreadNotifications->count() ?? 0 }};
-                updateNotificationCount(count);
+                fetch('{{ route("notifications.unread-count") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateNotificationCount(data.count);
+                    })
+                    .catch(error => {
+                        console.error('Error loading unread count:', error);
+                        // Fallback to server-side count
+                        const count = {{ auth()->user()->unreadNotifications->count() ?? 0 }};
+                        updateNotificationCount(count);
+                    });
             }
             
             function loadRecentNotifications() {
@@ -273,37 +280,21 @@
                     </div>
                 `;
                 
-                // Simulate loading recent notifications
-                setTimeout(() => {
-                    const notifications = [
-                        {
-                            id: 1,
-                            title: 'Cấp phát tài sản sắp hết hạn',
-                            message: 'Laptop LP001 cần được thu hồi trong 3 ngày',
-                            time: '2 phút trước',
-                            is_read: false,
-                            type: 'warning'
-                        },
-                        {
-                            id: 2,
-                            title: 'Sự cố mới được báo cáo',
-                            message: 'Máy in PR002 gặp sự cố kẹt giấy',
-                            time: '1 giờ trước',
-                            is_read: false,
-                            type: 'danger'
-                        },
-                        {
-                            id: 3,
-                            title: 'Tài sản mới được thêm',
-                            message: 'Laptop Dell Latitude 5520 đã được thêm vào hệ thống',
-                            time: '3 giờ trước',
-                            is_read: true,
-                            type: 'success'
-                        }
-                    ];
-                    
-                    renderNotifications(notifications);
-                }, 1000);
+                fetch('{{ route("notifications.recent") }}')
+                    .then(response => response.json())
+                    .then(notifications => {
+                        renderNotifications(notifications);
+                    })
+                    .catch(error => {
+                        console.error('Error loading notifications:', error);
+                        notificationList.innerHTML = `
+                            <div class="text-center p-3 text-muted">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                <p class="mb-0">Không thể tải thông báo</p>
+                                <small>Vui lòng thử lại sau</small>
+                            </div>
+                        `;
+                    });
             }
             
             function renderNotifications(notifications) {
@@ -321,17 +312,18 @@
                 notifications.forEach(notification => {
                     const iconClass = getNotificationIcon(notification.type);
                     const bgClass = notification.is_read ? '' : 'bg-light';
+                    const timeAgo = formatTimeAgo(notification.created_at);
                     
                     html += `
                         <div class="dropdown-item-text ${bgClass} p-3 border-bottom notification-item" data-id="${notification.id}">
                             <div class="d-flex">
                                 <div class="me-3">
-                                    <i class="${iconClass} text-${notification.type}"></i>
+                                    <i class="${iconClass} text-${notification.type === 'error' ? 'danger' : notification.type}"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1 fw-bold">${notification.title}</h6>
                                     <p class="mb-1 small text-muted">${notification.message}</p>
-                                    <small class="text-muted">${notification.time}</small>
+                                    <small class="text-muted">${timeAgo}</small>
                                 </div>
                                 ${!notification.is_read ? '<div class="ms-2"><span class="badge bg-primary rounded-pill">&nbsp;</span></div>' : ''}
                             </div>
@@ -353,9 +345,10 @@
             function getNotificationIcon(type) {
                 switch(type) {
                     case 'warning': return 'fas fa-exclamation-triangle';
-                    case 'danger': return 'fas fa-exclamation-circle';
+                    case 'error': return 'fas fa-exclamation-circle';
                     case 'success': return 'fas fa-check-circle';
                     case 'info': return 'fas fa-info-circle';
+                    case 'incident': return 'fas fa-bug';
                     default: return 'fas fa-bell';
                 }
             }
@@ -370,8 +363,50 @@
             }
             
             function markNotificationAsRead(notificationId) {
-                // In a real implementation, you would make an API call here
-                console.log('Marking notification as read:', notificationId);
+                fetch(`{{ url('/notifications') }}/${notificationId}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadUnreadCount();
+                        // Update the notification item to show as read
+                        const notificationItem = document.querySelector(`[data-id="${notificationId}"]`);
+                        if (notificationItem) {
+                            notificationItem.classList.remove('bg-light');
+                            const badge = notificationItem.querySelector('.badge');
+                            if (badge) {
+                                badge.remove();
+                            }
+                        }
+                    }
+                })
+                .catch(error => console.error('Error marking notification as read:', error));
+            }
+            
+            function formatTimeAgo(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) {
+                    return 'Vừa xong';
+                } else if (diffInSeconds < 3600) {
+                    const minutes = Math.floor(diffInSeconds / 60);
+                    return `${minutes} phút trước`;
+                } else if (diffInSeconds < 86400) {
+                    const hours = Math.floor(diffInSeconds / 3600);
+                    return `${hours} giờ trước`;
+                } else if (diffInSeconds < 2592000) {
+                    const days = Math.floor(diffInSeconds / 86400);
+                    return `${days} ngày trước`;
+                } else {
+                    return date.toLocaleDateString('vi-VN');
+                }
             }
             
             // Refresh notification count every 30 seconds
