@@ -23,7 +23,8 @@
                                 id="asset_id" name="asset_id" required>
                             <option value="">Chọn tài sản</option>
                             @foreach($assets as $asset)
-                                <option value="{{ $asset->id }}" {{ old('asset_id') == $asset->id ? 'selected' : '' }}
+                                <option value="{{ $asset->id }}" 
+                                        {{ (old('asset_id') == $asset->id || (isset($selectedAssetId) && $selectedAssetId == $asset->id)) ? 'selected' : '' }}
                                         data-category="{{ $asset->category->name }}"
                                         data-employee="{{ $asset->currentAssignment->employee->full_name ?? 'N/A' }}"
                                         data-department="{{ $asset->currentAssignment->employee->department->name ?? 'N/A' }}">
@@ -110,9 +111,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const assetSelect = document.getElementById('asset_id');
     const assetInfo = document.getElementById('asset-info');
     
-    // Show asset info when selected
-    assetSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
+    // Function to show asset info
+    function showAssetInfo() {
+        const selectedOption = assetSelect.options[assetSelect.selectedIndex];
         if (selectedOption.value) {
             document.getElementById('asset-category').textContent = selectedOption.dataset.category || 'N/A';
             document.getElementById('asset-employee').textContent = selectedOption.dataset.employee || 'N/A';
@@ -121,7 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             assetInfo.style.display = 'none';
         }
-    });
+    }
+    
+    // Show asset info when selected
+    assetSelect.addEventListener('change', showAssetInfo);
+    
+    // Show asset info if pre-selected
+    if (assetSelect.value) {
+        showAssetInfo();
+    }
     
     // Set maximum date to today
     const incidentDateInput = document.getElementById('incident_date');

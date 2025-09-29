@@ -39,6 +39,16 @@ class Employee extends Model
         return $this->hasMany(AssetAssignment::class);
     }
 
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(AssetAssignment::class);
+    }
+
+    public function activeAssignments(): HasMany
+    {
+        return $this->hasMany(AssetAssignment::class)->where('status', 'active');
+    }
+
     public function assignedAssets(): HasMany
     {
         return $this->hasMany(AssetAssignment::class, 'assigned_by');

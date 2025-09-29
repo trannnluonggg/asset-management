@@ -44,7 +44,22 @@ class SettingsController extends Controller
                 ->withInput();
         }
 
-        foreach ($request->settings as $key => $value) {
+        // Get all possible setting keys from the settings structure
+        $allSettings = $this->getSettingsGrouped();
+        $allSettingKeys = [];
+        foreach ($allSettings as $group) {
+            $allSettingKeys = array_merge($allSettingKeys, array_keys($group['settings']));
+        }
+        
+        // Process each setting key
+        foreach ($allSettingKeys as $key) {
+            $value = $request->input("settings.{$key}");
+            
+            // Handle null/empty values - convert to empty string to avoid database constraint issues
+            if ($value === null) {
+                $value = '';
+            }
+            
             SystemSetting::setValue($key, $value);
         }
 

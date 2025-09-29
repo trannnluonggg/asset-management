@@ -43,13 +43,15 @@ class IncidentController extends Controller
         return view('incidents.index', compact('incidents'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $assets = Asset::where('status', 'assigned')
             ->with(['category', 'currentAssignment.employee'])
             ->get();
+        
+        $selectedAssetId = $request->get('asset_id');
             
-        return view('incidents.create', compact('assets'));
+        return view('incidents.create', compact('assets', 'selectedAssetId'));
     }
 
     public function store(Request $request)
