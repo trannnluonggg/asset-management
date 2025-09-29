@@ -249,9 +249,9 @@
                 @if(auth()->user()->canManageAssets())
                 <div class="d-grid gap-2">
                     @if($asset->status == 'available')
-                    <button class="btn btn-success" onclick="assignAsset()">
+                    <a href="{{ route('assignments.create', ['asset_id' => $asset->id]) }}" class="btn btn-success">
                         <i class="fas fa-user-plus me-2"></i>Giao tài sản
-                    </button>
+                    </a>
                     @elseif($asset->status == 'assigned')
                     <button class="btn btn-warning" onclick="returnAsset()">
                         <i class="fas fa-undo me-2"></i>Thu hồi tài sản

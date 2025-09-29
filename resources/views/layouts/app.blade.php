@@ -232,9 +232,12 @@
             
             // Load notifications when dropdown is opened
             notificationDropdown.addEventListener('click', function() {
-                if (!this.classList.contains('show')) {
-                    loadRecentNotifications();
-                }
+                loadRecentNotifications();
+            });
+            
+            // Also load when dropdown is shown via Bootstrap event
+            document.getElementById('notificationDropdown').addEventListener('shown.bs.dropdown', function () {
+                loadRecentNotifications();
             });
             
             // Mark all as read
@@ -415,5 +418,6 @@
     </script>
     
     @yield('scripts')
+    @stack('scripts')
 </body>
 </html>

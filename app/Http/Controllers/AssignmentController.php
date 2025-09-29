@@ -45,12 +45,15 @@ class AssignmentController extends Controller
         return view('assignments.index', compact('assignments'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $availableAssets = Asset::where('status', 'available')->with('category')->get();
         $employees = Employee::where('status', 'active')->with('department')->get();
         
-        return view('assignments.create', compact('availableAssets', 'employees'));
+        // Pre-select asset if asset_id is provided
+        $selectedAssetId = $request->get('asset_id');
+        
+        return view('assignments.create', compact('availableAssets', 'employees', 'selectedAssetId'));
     }
 
     public function store(Request $request)

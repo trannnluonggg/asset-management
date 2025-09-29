@@ -23,7 +23,8 @@
                                 id="asset_id" name="asset_id" required>
                             <option value="">Chọn tài sản</option>
                             @foreach($availableAssets as $asset)
-                                <option value="{{ $asset->id }}" {{ old('asset_id') == $asset->id ? 'selected' : '' }}
+                                <option value="{{ $asset->id }}" 
+                                        {{ (old('asset_id') == $asset->id || (isset($selectedAssetId) && $selectedAssetId == $asset->id)) ? 'selected' : '' }}
                                         data-category="{{ $asset->category->name }}"
                                         data-brand="{{ $asset->brand }}"
                                         data-model="{{ $asset->model }}">
